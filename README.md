@@ -247,4 +247,4 @@ is applied to searches, exports and drafts.
 
 ## Licence
 
-MIT
+MIT, see [LICENSE](LICENSE).
