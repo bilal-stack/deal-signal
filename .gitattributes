@@ -1,0 +1,5 @@
+# Keep line endings consistent regardless of who clones this on which platform.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.parquet binary

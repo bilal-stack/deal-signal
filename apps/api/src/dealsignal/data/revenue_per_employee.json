@@ -1,0 +1,67 @@
+{
+  "note": "Revenue per employee, used to estimate a company's revenue from its headcount. Each entry says where its figures come from. Replace the rule-of-thumb entries with measured ones using scripts/fetch_benchmarks.py once a US Census API key is available (free: https://api.census.gov/data/key_signup.html).",
+  "updated": "2026-09-17",
+  "benchmarks": [
+    {
+      "industry": "hvac",
+      "naics": "238220",
+      "low": 150000,
+      "high": 250000,
+      "source": "industry rule of thumb for owner-operated contractors"
+    },
+    {
+      "industry": "plumbing",
+      "naics": "238220",
+      "low": 150000,
+      "high": 250000,
+      "source": "industry rule of thumb for owner-operated contractors"
+    },
+    {
+      "industry": "electrical",
+      "naics": "238210",
+      "low": 150000,
+      "high": 250000,
+      "source": "industry rule of thumb for owner-operated contractors"
+    },
+    {
+      "industry": "landscaping",
+      "naics": "561730",
+      "low": 70000,
+      "high": 120000,
+      "source": "industry rule of thumb for owner-operated services"
+    },
+    {
+      "industry": "accounting",
+      "naics": "541211",
+      "low": 120000,
+      "high": 200000,
+      "source": "industry rule of thumb for small practices"
+    },
+    {
+      "industry": "dental",
+      "naics": "621210",
+      "low": 150000,
+      "high": 250000,
+      "source": "industry rule of thumb for small practices"
+    },
+    {
+      "industry": "veterinary",
+      "naics": "541940",
+      "low": 150000,
+      "high": 250000,
+      "source": "industry rule of thumb for small practices"
+    },
+    {
+      "industry": "commercial_cleaning",
+      "naics": "561720",
+      "low": 40000,
+      "high": 70000,
+      "source": "industry rule of thumb for labour-intensive services"
+    }
+  ],
+  "default": {
+    "low": 80000,
+    "high": 160000,
+    "source": "wide default for an industry with no benchmark"
+  }
+}

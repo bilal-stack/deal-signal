@@ -1,0 +1,90 @@
+# One command brings the whole system up on a clean machine:
+#
+#     docker compose up --build
+#
+# Host ports are variables so a second copy can run alongside for testing.
+
+x-api-environment: &api-environment
+  DATABASE_URL: postgresql+asyncpg://dealsignal:dealsignal@db:5432/dealsignal
+  REDIS_URL: redis://redis:6379/0
+
+x-optional-env-file: &optional-env-file
+  # Optional so a fresh clone starts before anyone has created .env. Features that
+  # need a key (website reading, UK register) say so plainly when it is missing.
+  - path: .env
+    required: false
+
+services:
+  db:
+    build:
+      context: ./db
+    image: dealsignal-db
+    environment:
+      POSTGRES_USER: dealsignal
+      POSTGRES_PASSWORD: dealsignal
+      POSTGRES_DB: dealsignal
+    ports:
+      - "${DB_PORT:-5433}:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dealsignal -d dealsignal"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "${REDIS_PORT:-6380}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build:
+      context: ./apps/api
+    image: dealsignal-api
+    # Migrations run before the server starts, so the schema always matches the code.
+    command: >
+      sh -c "alembic upgrade head &&
+             uvicorn dealsignal.main:app --host 0.0.0.0 --port 8000 --reload"
+    env_file: *optional-env-file
+    environment: *api-environment
+    ports:
+      - "${API_PORT:-8000}:8000"
+    volumes:
+      - ./apps/api:/app
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health/ready')"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
+  worker:
+    # Same image as the API; built once, not twice. Runs the jobs the UI starts:
+    # loading regions, register lookups, domain ages and website reading.
+    image: dealsignal-api
+    command: arq dealsignal.workers.settings.WorkerSettings
+    env_file: *optional-env-file
+    environment: *api-environment
+    volumes:
+      - ./apps/api:/app
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  db_data:
+  redis_data:

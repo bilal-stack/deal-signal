@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DealSignal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+<link rel="stylesheet" href="/app/style.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand">Deal<span>Signal</span></div>
+  <p class="tagline">Businesses worth buying, ranked, with the reasons shown.</p>
+  <nav class="tabs" role="tablist" aria-label="Views">
+    <button class="tab" id="tab-search" role="tab" aria-selected="true" aria-controls="view-search">Find companies</button>
+    <button class="tab" id="tab-pipeline" role="tab" aria-selected="false" aria-controls="view-pipeline">
+      Pipeline <span id="pipeline-count" class="count" hidden></span>
+    </button>
+    <button class="tab" id="tab-data" role="tab" aria-selected="false" aria-controls="view-data">
+      Load &amp; enrich <span id="data-count" class="count" hidden></span>
+    </button>
+    <button class="tab" id="tab-review" role="tab" aria-selected="false" aria-controls="view-review">
+      Review duplicates <span id="review-count" class="count" hidden></span>
+    </button>
+  </nav>
+</header>
+
+<main id="view-search" role="tabpanel" aria-labelledby="tab-search">
+  <section class="panel" aria-labelledby="buybox-heading">
+    <h2 id="buybox-heading">Buy Box</h2>
+    <p class="hint" id="mode-hint">What you are looking to buy. Saved once, reused for every search.</p>
+    <label class="saved-picker">Saved Buy Boxes
+      <select id="saved-buybox"><option value="">New Buy Box</option></select>
+    </label>
+    <form id="buybox-form">
+      <fieldset class="segmented">
+        <legend class="visually-hidden">What are you looking for?</legend>
+        <input type="radio" id="mode-acquisition" name="mode" value="acquisition" checked>
+        <label for="mode-acquisition">Buy a business</label>
+        <input type="radio" id="mode-sales" name="mode" value="sales">
+        <label for="mode-sales">Sell to businesses</label>
+      </fieldset>
+      <label>Name<input name="name" value="HVAC, Dallas" required></label>
+      <label>Industry
+        <select name="industry" id="industry"></select>
+      </label>
+      <div class="row">
+        <label>Country
+          <select name="country">
+            <option value="US" selected>United States</option>
+            <option value="GB">United Kingdom</option>
+            <option value="FR">France</option>
+          </select>
+        </label>
+        <label>City<input name="city" value="" placeholder="Any town in the area"></label>
+      </div>
+      <div class="row">
+        <label>Revenue min ($)<input name="revenue_min" type="number" value="2000000" min="0" step="100000"></label>
+        <label>Revenue max ($)<input name="revenue_max" type="number" value="10000000" min="0" step="100000"></label>
+      </div>
+      <div class="row">
+        <label>Employees min<input name="employees_min" type="number" value="5" min="0"></label>
+        <label>Employees max<input name="employees_max" type="number" value="50" min="0"></label>
+      </div>
+      <button type="submit" id="search-button">Find companies</button>
+    </form>
+    <p id="form-status" class="status" role="status"></p>
+  </section>
+
+  <section class="results" aria-labelledby="results-heading">
+    <div class="results-head">
+      <div>
+        <h2 id="results-heading">Results</h2>
+        <p id="results-meta" class="hint"></p>
+      </div>
+      <div id="results-toggle" class="segmented compact" hidden>
+        <input type="radio" id="show-table" name="results-view" value="table" checked>
+        <label for="show-table">Table</label>
+        <input type="radio" id="show-map" name="results-view" value="map">
+        <label for="show-map">Map</label>
+      </div>
+      <div id="export-links" class="export" hidden>
+        <a id="export-csv" class="link-button" href="#" download>Export CSV</a>
+        <a id="export-xlsx" class="link-button" href="#" download>Export Excel</a>
+      </div>
+    </div>
+    <div id="results-body">
+      <p class="empty">Run a search to see ranked companies.</p>
+    </div>
+    <div id="results-map-wrap" hidden>
+      <p id="map-note" class="hint"></p>
+      <div id="results-map" role="region" aria-label="Map of results"></div>
+      <div class="legend" aria-hidden="true">
+        <span><i class="dot strong"></i>70+</span>
+        <span><i class="dot fair"></i>40-69</span>
+        <span><i class="dot weak"></i>under 40</span>
+        <span><i class="dot unknown-dot"></i>not enough data</span>
+      </div>
+    </div>
+  </section>
+</main>
+
+<section id="view-pipeline" class="pipeline" role="tabpanel" aria-labelledby="tab-pipeline" hidden>
+  <div class="review-head">
+    <h2>Pipeline</h2>
+    <p class="hint">Companies you are working. Move a card with its stage menu; notes and follow-up dates save as you go.</p>
+  </div>
+  <p id="pipeline-status" class="status" role="status"></p>
+  <div id="pipeline-board" class="board"><p class="empty">Loading…</p></div>
+</section>
+
+<section id="view-data" class="data" role="tabpanel" aria-labelledby="tab-data" hidden>
+  <div class="review-head">
+    <h2>Load &amp; enrich</h2>
+    <p class="hint">Each action runs in the background. You can leave this tab; progress and results appear below when you come back.</p>
+  </div>
+
+  <div class="job-cards">
+    <form class="job-card" data-job="seed">
+      <h3>Load companies</h3>
+      <p class="hint">From Overture Maps open data. No key needed.</p>
+      <label>Region<select name="region" id="seed-region"></select></label>
+      <label>Industry<select name="industry" id="seed-industry"></select></label>
+      <label>Up to<input name="limit" type="number" value="150" min="1" max="500"></label>
+      <button type="submit">Load companies</button>
+    </form>
+
+    <form class="job-card" data-job="registry">
+      <h3>Company register</h3>
+      <p class="hint">Founding year, headcount and owners. France needs no key; the UK needs a free Companies House key.</p>
+      <label>Country
+        <select name="country">
+          <option value="FR">France</option>
+          <option value="GB">United Kingdom</option>
+          <option value="US">United States</option>
+        </select>
+      </label>
+      <label>Up to<input name="limit" type="number" value="25" min="1" max="200"></label>
+      <button type="submit">Look up owners</button>
+    </form>
+
+    <form class="job-card" data-job="domain-age">
+      <h3>Domain age</h3>
+      <p class="hint">When each website domain was registered, as a minimum age. No key needed.</p>
+      <label>Up to<input name="limit" type="number" value="50" min="1" max="200"></label>
+      <button type="submit">Check domain ages</button>
+    </form>
+
+    <form class="job-card" data-job="websites">
+      <h3>Read websites</h3>
+      <p class="hint">Services, owner, repeat revenue and more, each with a quote as evidence. Each website is one Claude call, billed to your Anthropic key.</p>
+      <label>Up to<input name="limit" type="number" value="5" min="1" max="25"></label>
+      <button type="submit">Read websites</button>
+    </form>
+  </div>
+
+  <h3 class="section-title">Activity</h3>
+  <div id="job-list"><p class="empty">Nothing started yet.</p></div>
+</section>
+
+<section id="view-review" class="review" role="tabpanel" aria-labelledby="tab-review" hidden>
+  <div class="review-head">
+    <h2>Possible duplicates</h2>
+    <p class="hint">
+      These pairs looked alike but not certain enough to merge on a guess. Merge them if
+      they are the same business; keep both if they are not.
+    </p>
+  </div>
+  <p id="review-status" class="status" role="status"></p>
+  <div id="review-body"><p class="empty">Loading…</p></div>
+</section>
+
+<aside id="detail" class="detail" hidden aria-label="Company detail">
+  <button id="detail-close" class="close" aria-label="Close">&times;</button>
+  <div id="detail-body"></div>
+</aside>
+
+<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script src="/app/app.js"></script>
+</body>
+</html>

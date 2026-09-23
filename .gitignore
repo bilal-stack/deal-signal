@@ -216,3 +216,29 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# --- Project ---
+# Node tooling, if a separate frontend is ever added
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+
+# Large downloads stay out; the curated demo dataset is committed
+data/raw/
+data/cache/
+*.parquet
+*.duckdb
+
+# Tooling caches
+.ruff_cache/
+
+# Editors and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Test artefacts
+playwright-report/
+test-results/
