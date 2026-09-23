@@ -38,11 +38,13 @@ jobs:
           docker compose up -d --wait db
 
       - name: Tests (unit and integration)
+        # bash, not the default sh: this step pipes pytest, and only bash here sets
+        # pipefail, without which a failing run would be masked by tee's exit code.
+        shell: bash
         env:
           TEST_DATABASE_URL: postgresql+asyncpg://dealsignal:dealsignal@localhost:5433/dealsignal_test
         run: |
-          pytest --cov=dealsignal --cov-report=term-missing -rs
-          # Integration tests skip when Postgres is unreachable. In CI that would hide
-          # a broken setup, so a skip here is treated as a failure.
-          pytest -m integration -q -rs | tee integration.log
-          ! grep -q "SKIPPED" integration.log
+          pytest --cov=dealsignal --cov-report=term-missing -rs | tee test.log
+          # Integration tests skip themselves when Postgres is unreachable, which in CI
+          # would hide a broken setup rather than report one.
+          ! grep -q "SKIPPED" test.log

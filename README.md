@@ -171,7 +171,10 @@ apps/api/src/dealsignal/
 └── static/        the web app, served by the API at /app/
 ```
 
-Dependencies point one way: `routers → services → repositories → models`.
+Dependencies point one way: `routers → services → repositories → models`. A router
+validates, calls a service for anything with rules, reads straight from a repository
+when there are none, and shapes the response. No SQL and no business rules live in
+a router; no framework and no SQL live in a service.
 
 | Layer | Choice |
 | --- | --- |
