@@ -28,7 +28,7 @@ DealSignal fixes the step where that breaks, then ranks what survives.
 Needs Docker Desktop. No API key is needed to explore the demo data.
 
 ```bash
-git clone <repo-url> dealsignal && cd dealsignal
+git clone https://github.com/bilal-stack/deal-signal.git && cd deal-signal
 docker compose up --build -d
 docker compose exec api python -m dealsignal.scripts.demo_data load
 ```
