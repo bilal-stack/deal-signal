@@ -20,8 +20,10 @@ Street, phone and rating were `N/A` on every row. Revenue estimation showed a ra
 model error inside the data under a green "success" message. Owner lookup returned
 "Not Found" and a literal `NaN`. Both enrichment buttons found nothing.
 
-Deal sourcing is not short of data, it is short of **relevant, trustworthy** data.
-DealSignal fixes the step where that breaks, then ranks what survives.
+The idea is right: a searcher does need a list of companies that fit, enriched and
+ready to approach. The data layer is where it breaks. Deal sourcing is not short of
+data, it is short of **relevant, trustworthy** data. DealSignal fixes that step, then
+ranks what survives.
 
 ## Quick start
 
